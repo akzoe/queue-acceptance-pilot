@@ -1,0 +1,17 @@
+merge_queue:
+  mode: serial
+  max_parallel_checks: 1
+  skip_intermediate_results: false
+
+queue_rules:
+  - name: pilot
+    queue_branch_prefix: mergify/merge-queue/
+    merge_method: fast-forward
+    update_method: rebase
+    batch_size: 1
+    max_checks_retries: 0
+    queue_conditions:
+      - base=main
+      - check-success=pilot-pr
+    merge_conditions:
+      - check-success=pilot-full

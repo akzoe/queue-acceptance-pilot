@@ -1,0 +1,31 @@
+name: Pilot candidate
+
+on:
+  push:
+    branches: ['mergify/merge-queue/**']
+
+permissions:
+  contents: read
+
+jobs:
+  full:
+    name: pilot-full
+    if: ${{ github.event.deleted == false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ github.event.after }}
+          persist-credentials: false
+      - name: Verify the exact queue commit
+        shell: bash
+        env:
+          CANDIDATE_SHA: ${{ github.event.after }}
+        run: |
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$CANDIDATE_SHA" = "$GITHUB_SHA"
+          actual_sha=$(git rev-parse HEAD)
+          test "$actual_sha" = "$CANDIDATE_SHA"
+          printf 'tested_sha=%s run_attempt=%s\n' "$actual_sha" "$GITHUB_RUN_ATTEMPT"
+          python3 -I verify.py full
